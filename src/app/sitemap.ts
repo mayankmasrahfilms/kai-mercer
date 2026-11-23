@@ -14,9 +14,9 @@ export default function sitemap(): MetadataRoute.Sitemap {
   });
 
   return [
-    page("/", 1, "weekly", ["/images/hero-portrait.jpg"]),
+    page("/", 1, "weekly", ["/images/hero-person.webp", "/images/kai-race-helmet.webp"]),
     page("/calendar", 0.9, "daily"),
-    page("/on-track", 0.9, "weekly", ["/images/helmet-04.jpg"]),
+    page("/on-track", 0.9, "weekly", ["/images/ontrack-helmet.webp"]),
     page("/store", 0.8, "weekly", ["/images/store-hero.jpg"]),
     page("/store/faq", 0.4, "monthly"),
     ...collections.map((c) => page(`/store/collections/${c.slug}`, 0.6, "weekly")),

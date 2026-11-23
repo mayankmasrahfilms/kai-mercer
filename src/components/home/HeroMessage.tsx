@@ -9,86 +9,37 @@ import { TLink } from "@/components/site/TLink";
 import { nextRace } from "@/data/races";
 import { site } from "@/data/site";
 
-const HERO_SRC = "/images/hero-portrait.jpg";
-const OBJ_POS_Y = 0.4;
+const PERSON_SRC = "/images/hero-person.webp";
+const HELMET_SRC = "/images/hero-helmet.webp";
+const GHOST_SRC = "/images/hero-ghost.webp";
 
-/** Cover-fit geometry identical to CSS object-fit: cover + object-position. */
-function coverRect(iw: number, ih: number, cw: number, ch: number, py = OBJ_POS_Y) {
-  const s = Math.max(cw / iw, ch / ih);
-  const w = iw * s;
-  const h = ih * s;
-  return { x: (cw - w) / 2, y: (ch - h) * py, w, h };
-}
-
-/** Builds the lime "helmet livery" duotone of the portrait with blob pattern on top. */
-function buildSkin(img: HTMLImageElement, w: number, h: number, dpr: number) {
-  const c = document.createElement("canvas");
-  c.width = Math.round(w * dpr);
-  c.height = Math.round(h * dpr);
-  const ctx = c.getContext("2d", { willReadFrequently: true })!;
-  const r = coverRect(img.naturalWidth, img.naturalHeight, w, h);
-  ctx.drawImage(img, r.x * dpr, r.y * dpr, r.w * dpr, r.h * dpr);
-  const data = ctx.getImageData(0, 0, c.width, c.height);
-  const d = data.data;
-  const dark = [18, 24, 6];
-  const lime = [210, 255, 0];
-  for (let i = 0; i < d.length; i += 4) {
-    let l = 0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2];
-    l = Math.min(255, Math.max(0, (l - 120) * 1.9 + 135)) / 255;
-    d[i] = dark[0] + (lime[0] - dark[0]) * l;
-    d[i + 1] = dark[1] + (lime[1] - dark[1]) * l;
-    d[i + 2] = dark[2] + (lime[2] - dark[2]) * l;
-  }
-  ctx.putImageData(data, 0, 0);
-  // Blob/worm livery pattern
-  let seed = 7;
-  const rand = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
-  ctx.globalCompositeOperation = "multiply";
-  ctx.strokeStyle = "rgba(20, 28, 6, 0.62)";
-  ctx.lineCap = "round";
-  ctx.lineJoin = "round";
-  const count = Math.round((w * h) / 9000);
-  for (let k = 0; k < count; k++) {
-    let x = rand() * c.width;
-    let y = rand() * c.height;
-    let a = rand() * Math.PI * 2;
-    ctx.lineWidth = (7 + rand() * 9) * dpr;
-    ctx.beginPath();
-    ctx.moveTo(x, y);
-    const steps = 5 + Math.floor(rand() * 6);
-    for (let s = 0; s < steps; s++) {
-      a += (rand() - 0.5) * 2.2;
-      const len = (14 + rand() * 22) * dpr;
-      const cx = x + Math.cos(a) * len;
-      const cy = y + Math.sin(a) * len;
-      a += (rand() - 0.5) * 1.6;
-      x = cx + Math.cos(a) * len;
-      y = cy + Math.sin(a) * len;
-      ctx.quadraticCurveTo(cx, cy, x, y);
-    }
-    ctx.stroke();
-  }
-  ctx.globalCompositeOperation = "source-over";
-  return c;
-}
-
-function useHelmetReveal(canvasRef: React.RefObject<HTMLCanvasElement | null>, wrapRef: React.RefObject<HTMLElement | null>) {
+/**
+ * Cursor trail reveal: wherever the pointer passes, the race helmet appears on Kai's head
+ * (blobs that grow, linger and shrink away), exactly over the faint glass helmet outline.
+ */
+function useHelmetReveal(
+  canvasRef: React.RefObject<HTMLCanvasElement | null>,
+  wrapRef: React.RefObject<HTMLElement | null>,
+  slotRef: React.RefObject<HTMLElement | null>
+) {
   useEffect(() => {
     const canvas = canvasRef.current;
     const wrap = wrapRef.current;
-    if (!canvas || !wrap) return;
+    const slot = slotRef.current;
+    if (!canvas || !wrap || !slot) return;
     const ctx = canvas.getContext("2d")!;
     const mask = document.createElement("canvas");
     const mctx = mask.getContext("2d")!;
-    const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
     let skin: HTMLCanvasElement | null = null;
     let w = 0;
     let h = 0;
     let raf = 0;
     let visible = true;
+    const head = { x: 0, y: 0, w: 0, h: 0 };
     const img = new window.Image();
     img.decoding = "async";
-    img.src = HERO_SRC;
+    img.src = HELMET_SRC;
 
     const points: { x: number; y: number; life: number }[] = [];
     const target = { x: -999, y: -999, active: false };
@@ -98,13 +49,25 @@ function useHelmetReveal(canvasRef: React.RefObject<HTMLCanvasElement | null>, w
 
     const resize = () => {
       const r = wrap.getBoundingClientRect();
+      const s = slot.getBoundingClientRect();
       w = r.width;
       h = r.height;
+      head.x = s.left - r.left;
+      head.y = s.top - r.top;
+      head.w = s.width;
+      head.h = s.height;
       canvas.width = mask.width = Math.round(w * dpr);
       canvas.height = mask.height = Math.round(h * dpr);
       canvas.style.width = `${w}px`;
       canvas.style.height = `${h}px`;
-      if (img.complete && img.naturalWidth) skin = buildSkin(img, w, h, dpr);
+      if (img.complete && img.naturalWidth) {
+        skin = document.createElement("canvas");
+        skin.width = canvas.width;
+        skin.height = canvas.height;
+        const sctx = skin.getContext("2d")!;
+        sctx.imageSmoothingQuality = "high";
+        sctx.drawImage(img, head.x * dpr, head.y * dpr, head.w * dpr, head.h * dpr);
+      }
     };
     img.onload = resize;
 
@@ -129,8 +92,8 @@ function useHelmetReveal(canvasRef: React.RefObject<HTMLCanvasElement | null>, w
 
       if (auto) {
         const t = (now - t0) / 1000;
-        target.x = w * (0.5 + 0.13 * Math.sin(t * 0.9));
-        target.y = h * (0.42 + 0.14 * Math.sin(t * 1.3 + 1));
+        target.x = head.x + head.w * (0.5 + 0.34 * Math.sin(t * 0.9));
+        target.y = head.y + head.h * (0.42 + 0.3 * Math.sin(t * 1.3 + 1));
         if (!target.active) {
           cur.x = target.x;
           cur.y = target.y;
@@ -155,7 +118,7 @@ function useHelmetReveal(canvasRef: React.RefObject<HTMLCanvasElement | null>, w
         if (points[i].life <= 0) points.splice(i, 1);
       }
 
-      const R = Math.min(w, h) * 0.2;
+      const R = Math.max(70, head.w * 0.3);
       mctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       mctx.clearRect(0, 0, w, h);
       mctx.fillStyle = "#000";
@@ -190,15 +153,16 @@ function useHelmetReveal(canvasRef: React.RefObject<HTMLCanvasElement | null>, w
       wrap.removeEventListener("pointermove", onMove);
       wrap.removeEventListener("pointerleave", onLeave);
     };
-  }, [canvasRef, wrapRef]);
+  }, [canvasRef, wrapRef, slotRef]);
 }
 
 export function HeroMessage() {
   const root = useRef<HTMLElement>(null);
   const card = useRef<HTMLDivElement>(null);
   const canvas = useRef<HTMLCanvasElement>(null);
+  const slot = useRef<HTMLDivElement>(null);
 
-  useHelmetReveal(canvas, card);
+  useHelmetReveal(canvas, card, slot);
 
   useGSAP(
     () => {
@@ -212,7 +176,8 @@ export function HeroMessage() {
           scrollTrigger: { trigger: root.current, start: "top top", end: "bottom bottom", scrub: 0.6 },
         });
         tl.fromTo(card.current, { clipPath: "inset(0% 0% 0% 0%)" }, { clipPath: `inset(${inset})`, duration: 0.42 }, 0)
-          .fromTo(".hm__photo", { filter: "grayscale(0) brightness(1.12) contrast(0.98)" }, { filter: "grayscale(1) brightness(0.95) contrast(1)", duration: 0.42 }, 0)
+          .fromTo(".hm__dim", { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.3 }, 0.12)
+          .fromTo(".hm__person", { filter: "grayscale(0)" }, { filter: "grayscale(1)", duration: 0.3 }, 0.12)
           .to(".hm__ui", { autoAlpha: 0, duration: 0.12 }, 0)
           .to(canvas.current, { autoAlpha: 0, duration: 0.1 }, 0.02)
           .fromTo(".hm__row--a", { xPercent: 2 }, { xPercent: -22, duration: 1 }, 0)
@@ -241,19 +206,24 @@ export function HeroMessage() {
         </div>
 
         <div ref={card} className="hm__card" data-theme="light">
-          <Image
-            className="hm__photo"
-            src={HERO_SRC}
-            alt="Portrait of Kai Mercer, Formula 1 driver"
-            fill
-            priority
-            fetchPriority="high"
-            sizes="100vw"
-            quality={85}
-            style={{ objectPosition: `50% ${OBJ_POS_Y * 100}%` }}
-          />
-          <canvas ref={canvas} className="hm__canvas" aria-hidden="true" />
           <Contours className="hm__contours" />
+          <div className="hm__person">
+            <Image
+              className="hm__photo"
+              src={PERSON_SRC}
+              alt="Portrait of Kai Mercer, Formula 1 driver"
+              fill
+              priority
+              fetchPriority="high"
+              sizes="(max-width: 760px) 150vw, 95vh"
+              quality={90}
+            />
+            <div ref={slot} className="hm__slot" aria-hidden="true">
+              <Image className="hm__ghost" src={GHOST_SRC} alt="" fill sizes="(max-width: 760px) 110vw, 70vh" quality={85} />
+            </div>
+          </div>
+          <canvas ref={canvas} className="hm__canvas" aria-hidden="true" />
+          <span className="hm__dim" aria-hidden="true" />
           <div className="hm__ui">
             <Monogram className="hm__mono" />
             <h1 className="sr-only">Kai Mercer — British Formula 1 driver #{site.number}</h1>

@@ -484,20 +484,47 @@
   left: -1vw;
   top: -3vw;
   font-size: clamp(110px, 24vw, 520px);
-  z-index: 2;
+  z-index: 4;
 }
-.ot-hero__helmet {
+/* travelling helmet layer (spans hero + statement) */
+.ot-intro {
+  position: relative;
+  background: var(--dark);
+}
+.ht {
   position: absolute;
-  left: -6vw;
-  top: 15vw;
-  width: 44vw;
-  aspect-ratio: 1;
+  inset: 0;
   z-index: 3;
-  -webkit-mask-image: radial-gradient(circle at 50% 50%, #000 52%, transparent 70%);
-  mask-image: radial-gradient(circle at 50% 50%, #000 52%, transparent 70%);
+  pointer-events: none;
 }
-.ot-hero__helmet img {
-  object-fit: cover;
+.ht__sticky {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  height: 100svh;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+}
+.ht__body {
+  position: relative;
+  width: min(64vw, 1180px);
+  aspect-ratio: 1;
+  will-change: transform;
+}
+.ht__intro,
+.ht__side,
+.ht__front {
+  position: absolute;
+  inset: 0;
+}
+.ht__side img,
+.ht__front img {
+  object-fit: contain;
+  filter: drop-shadow(0 3vw 3vw rgba(0, 0, 0, 0.55));
+}
+.ht__front {
+  visibility: hidden;
 }
 .ot-hero__info {
   position: relative;
@@ -578,8 +605,13 @@
 /* ---------- Big statement with helmet ---------- */
 .ot-statement {
   position: relative;
-  padding: 8vw var(--pad) 10vw;
+  min-height: 100vh;
+  min-height: 100svh;
+  padding: 6vw var(--pad) 6vw;
   text-align: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 .ot-statement__sig {
   width: clamp(70px, 6vw, 120px);
@@ -595,22 +627,6 @@
 }
 .ot-statement__text .serif {
   color: var(--muted);
-}
-.ot-statement__helmet {
-  position: absolute;
-  left: 50%;
-  top: 38%;
-  width: 20vw;
-  aspect-ratio: 1;
-  translate: -50% 0;
-  z-index: 2;
-  border-radius: 50%;
-  overflow: hidden;
-  -webkit-mask-image: radial-gradient(circle, #000 58%, transparent 71%);
-  mask-image: radial-gradient(circle, #000 58%, transparent 71%);
-}
-.ot-statement__helmet img {
-  object-fit: cover;
 }
 .ot-statement__laurel {
   width: clamp(60px, 6vw, 120px);
@@ -918,15 +934,16 @@
     font-size: 26vw;
     bottom: 10vw;
   }
-  .ot-hero__helmet {
-    position: relative;
-    left: -10vw;
-    top: 0;
-    width: 90vw;
-    margin-top: -8vw;
+  .ht__sticky {
+    place-items: start center;
+    padding-top: 15svh;
+  }
+  .ht__body {
+    width: 92vw;
   }
   .ot-hero__info {
     margin-left: 0;
+    margin-top: 84vw;
   }
   .ot-hero__facts {
     grid-template-columns: 1fr;
@@ -938,9 +955,6 @@
   .ot-card {
     min-height: 34vw;
     padding: 14px;
-  }
-  .ot-statement__helmet {
-    width: 46vw;
   }
   .ot-titles__list {
     grid-template-columns: 1fr;

@@ -56,7 +56,7 @@ export const personLd = {
   nationality: site.nationality,
   birthDate: site.born,
   url: SITE_URL,
-  image: `${SITE_URL}/images/hero-portrait.jpg`,
+  image: `${SITE_URL}/images/hero-person.webp`,
   memberOf: { "@type": "SportsTeam", name: site.team, sport: "Formula 1" },
   sameAs: site.socials.map((s) => s.href),
 };

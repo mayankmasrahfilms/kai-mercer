@@ -52,24 +52,55 @@
   inset: 0;
   z-index: 2;
   overflow: hidden;
-  background: #b8b7ad;
+  background: #f3f3ee;
   will-change: clip-path;
 }
-.hm__photo {
-  object-fit: cover;
+/* Cut-out portrait: head near the top, chest cropped by the bottom edge */
+.hm__person {
+  position: absolute;
+  z-index: 1;
+  left: 50%;
+  top: 4vh;
+  height: 122vh;
+  aspect-ratio: 2 / 3;
+  translate: -50% 0;
   will-change: filter;
+}
+.hm__photo {
+  object-fit: contain;
+}
+/* Box the helmet is drawn into (ghost image + canvas reveal share it) */
+.hm__slot {
+  position: absolute;
+  left: 11.5%;
+  top: 0%;
+  width: 77%;
+  aspect-ratio: 1400 / 1634;
+  pointer-events: none;
+}
+.hm__ghost {
+  object-fit: fill;
+  opacity: 0.7;
 }
 .hm__canvas {
   position: absolute;
   inset: 0;
-  z-index: 1;
+  z-index: 2;
   pointer-events: none;
 }
 .hm__contours {
-  z-index: 2;
+  z-index: 0;
   color: #111;
-  opacity: 0.1 !important;
+  opacity: 0.09 !important;
+}
+.hm__dim {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  background: rgba(124, 124, 114, 0.42);
   mix-blend-mode: multiply;
+  pointer-events: none;
+  visibility: hidden;
 }
 .hm__ui {
   position: absolute;
@@ -172,65 +203,93 @@
   margin: 0 auto;
 }
 
-/* ---------- Collage ---------- */
+/* ---------- Collage: pinned horizontal photo strip ---------- */
 .collage {
+  --u: 1vw;
   position: relative;
+  height: 100vh;
+  height: 100svh;
   overflow: hidden;
-  padding: 6vw 0 10vw;
+  background: #282c20;
+  color: #eeeee4;
 }
 .collage--dark {
   background: var(--dark);
+  color: var(--cream);
 }
-.collage__stage {
-  position: relative;
-  height: 128vw;
-  max-height: 2600px;
-}
-.collage__item {
+.collage__track {
   position: absolute;
+  inset: 0 auto 0 0;
+  width: calc(var(--tw) * var(--u));
   will-change: transform;
 }
-.collage__item figcaption {
-  margin-bottom: 0.7vw;
-  opacity: 0.8;
+.collage__item,
+.collage__quote {
+  position: absolute;
+  left: calc(var(--x) * var(--u));
+  width: calc(var(--w) * var(--u));
+}
+.collage__item {
+  margin: 0;
+  will-change: transform;
+}
+.collage__label {
+  position: relative;
+  display: inline-block;
+  margin-bottom: 0.75vw;
+  color: currentColor;
+  opacity: 0.55;
+  white-space: nowrap;
+}
+.collage__cap {
+  visibility: hidden;
+}
+.collage__bar {
+  position: absolute;
+  inset: -2px -3px;
+  background: #3b4a0c;
+  transform: scaleX(0);
 }
 .collage__img {
   position: relative;
   width: 100%;
   overflow: hidden;
-  filter: grayscale(1) sepia(0.28) brightness(0.82) contrast(0.95);
-  transition: filter 0.9s var(--ease-out);
-}
-.collage--dark .collage__img {
-  filter: grayscale(1) brightness(0.9);
-}
-.collage__item.is-colour .collage__img,
-.collage__item:hover .collage__img {
-  filter: none;
+  clip-path: inset(0% 0% 0% 0%);
 }
 .collage__img img {
   object-fit: cover;
-  transition: transform 1.2s var(--ease-out);
+  transition: filter 0.8s var(--ease-out);
+}
+.collage__item.is-mono .collage__img img {
+  filter: grayscale(1) contrast(0.92) brightness(0.92);
 }
 .collage__item:hover .collage__img img {
-  transform: scale(1.04);
+  filter: none;
 }
-.collage__quote {
-  position: absolute;
-  max-width: 24vw;
+.collage__chip {
+  display: inline-flex;
+  align-items: stretch;
+  margin-top: 0.9vw;
+  border: 1px solid currentColor;
+  border-radius: 4px;
+  opacity: 0.5;
+  font-weight: 700;
+  font-size: clamp(12px, 1vw, 18px);
 }
-.collage__quote--a {
-  left: 54%;
-  top: 2%;
+.collage__chip > span {
+  display: grid;
+  place-items: center;
+  padding: 0.25em 0.9em;
+  border-right: 1px solid currentColor;
 }
-.collage__quote--b {
-  left: 42%;
-  top: 41%;
-  max-width: 30vw;
+.collage__chip svg {
+  width: 2.4em;
+  padding: 0.3em 0.6em;
+  box-sizing: content-box;
 }
 .collage__text {
-  font-size: clamp(20px, 1.9vw, 40px);
-  line-height: 1.04;
+  font-size: clamp(15px, 1.5vw, 30px);
+  line-height: 1.02;
   letter-spacing: 0.01em;
 }
 .collage__text b {
@@ -239,12 +298,19 @@
   letter-spacing: -0.02em;
 }
 .collage__mini-sig {
-  width: clamp(54px, 4vw, 80px);
-  margin-top: 1.4vw;
+  width: clamp(44px, 3.6vw, 72px);
+  margin-top: 1.1vw;
   color: var(--lime-deep);
 }
 .collage--dark .collage__mini-sig {
   color: var(--lime);
+}
+/* reduced motion: plain sideways-scrollable strip */
+.collage.is-static {
+  overflow-x: auto;
+}
+.collage.is-static .collage__cap {
+  visibility: visible;
 }
 
 /* ---------- On / Off track ---------- */
@@ -260,25 +326,33 @@
   overflow: hidden;
   background: var(--paper);
 }
+/* cut-out helmet (left) and Kai's profile (right) slide in from the edges */
 .onoff__side {
   position: absolute;
-  top: 9%;
-  bottom: -8%;
-  width: 27vw;
   z-index: 1;
+  pointer-events: none;
 }
 .onoff__side img {
-  object-fit: cover;
+  object-fit: contain;
 }
 .onoff__side--l {
-  left: 0;
-  -webkit-mask-image: linear-gradient(90deg, #000 60%, transparent 100%);
-  mask-image: linear-gradient(90deg, #000 60%, transparent 100%);
+  left: -17vw;
+  bottom: -9vh;
+  width: 42vw;
+  aspect-ratio: 1;
+}
+.onoff__side--l img {
+  object-position: left bottom;
+  filter: drop-shadow(0 2vw 2.4vw rgba(30, 36, 12, 0.18));
 }
 .onoff__side--r {
-  right: 0;
-  -webkit-mask-image: linear-gradient(270deg, #000 60%, transparent 100%);
-  mask-image: linear-gradient(270deg, #000 60%, transparent 100%);
+  right: -15vw;
+  top: 5vh;
+  width: 36vw;
+  aspect-ratio: 2 / 3;
+}
+.onoff__side--r img {
+  object-position: right top;
 }
 .onoff__cols {
   position: absolute;
@@ -432,7 +506,7 @@
   transition: opacity 0.5s var(--ease-out), transform 1s var(--ease-out);
 }
 .hcard__img {
-  padding: 9% 9% calc(9% + var(--notch));
+  padding: 12% 12% calc(12% + var(--notch));
   object-fit: contain;
   filter: drop-shadow(0 20px 30px rgba(0, 0, 0, 0.5));
 }
@@ -719,6 +793,11 @@
   .hm__rows {
     translate: 0 -120%;
   }
+  .hm__person {
+    top: 9svh;
+    height: auto;
+    width: 150vw;
+  }
   .hm__sig {
     width: 86vw;
   }
@@ -736,23 +815,11 @@
     margin-bottom: 10vw;
     gap: 8px;
   }
-  .collage__stage {
-    height: 330vw;
+  .collage {
+    --u: 2.4vw;
   }
-  .collage__item {
-    width: calc(var(--w, 1) * 1vw) !important;
-  }
-  .collage__quote,
-  .collage__quote--b {
-    max-width: 70vw;
-  }
-  .collage__quote--a {
-    left: 8%;
-    top: 30%;
-  }
-  .collage__quote--b {
-    left: 8%;
-    top: 62%;
+  .collage__label {
+    font-size: 9px;
   }
   .onoff__stage {
     height: auto;

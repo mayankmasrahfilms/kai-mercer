@@ -17,7 +17,7 @@ export default function HomePage() {
     <>
       <HeroMessage />
       <Statement />
-      <Collage items={collageHome} />
+      <Collage data={collageHome} />
       <OnOffTrack />
       <Helmets />
       <Champion />

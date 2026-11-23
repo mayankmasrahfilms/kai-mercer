@@ -257,12 +257,27 @@
   display: grid;
   place-items: center;
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
-  transition: transform 0.25s, background-color 0.25s;
+  transition: transform 0.25s, background-color 0.25s, opacity 0.35s, scale 0.35s;
 }
 .carousel__arrow:hover {
   transform: scale(1.08);
   background: var(--s-lime);
   color: #111;
+}
+.carousel__arrow.is-hidden {
+  opacity: 0;
+  scale: 0.6;
+  pointer-events: none;
+}
+.carousel__track.is-dragging {
+  cursor: grabbing;
+}
+.carousel__track.is-dragging a {
+  pointer-events: none;
+}
+.carousel__track img {
+  -webkit-user-drag: none;
+  user-select: none;
 }
 .carousel__arrow svg {
   width: 18px;

@@ -37,7 +37,7 @@ export function Footer() {
           </nav>
 
           <div className="footer__figure">
-            <Image src="/images/footer-helmet.jpg" alt="Kai Mercer in his race helmet" fill sizes="(max-width: 860px) 78vw, 32vw" />
+            <Image src="/images/kai-race-helmet.webp" alt="Kai Mercer wearing his lime race helmet" fill sizes="(max-width: 860px) 78vw, 34vw" quality={85} />
           </div>
 
           <div className="footer__col">

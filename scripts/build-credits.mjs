@@ -5,6 +5,8 @@ import { fileURLToPath } from "node:url";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const manifest = JSON.parse(await readFile(path.join(root, "scripts/images-manifest.json"), "utf8"));
+const cutouts = JSON.parse(await readFile(path.join(root, "scripts/cutout-sources.json"), "utf8"));
+const cutRows = cutouts.map((c) => `| ${c.files} | [${c.by}](${c.page}) | ${c.note} |`).join("\n");
 const rows = manifest.map((i) => `| ${i.slot} | [${i.by}](${i.page}) |`).join("\n");
 const md = `# Photo credits
 
@@ -14,6 +16,14 @@ Files live in \`public/images/<slot>.jpg\`; re-download them with \`node scripts
 | Slot | Photographer |
 | --- | --- |
 ${rows}
+
+## Cut-outs and helmet liveries
+
+These are edited versions of Unsplash photos (Unsplash License allows modification). The helmet liveries are original designs painted onto the photographed helmet shapes.
+
+| Files | Photographer | Edit |
+| --- | --- | --- |
+${cutRows}
 `;
 await writeFile(path.join(root, "CREDITS.md"), md);
 console.log(`CREDITS.md: ${manifest.length} photos`);

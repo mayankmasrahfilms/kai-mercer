@@ -19,14 +19,6 @@ export function OnTrackHero() {
     () => {
       if (prefersReducedMotion()) return;
       gsap.fromTo(".ot-hero__title-word", { yPercent: 105 }, { yPercent: 0, duration: 1.1, ease: "kmOut", delay: 0.2 });
-      gsap.fromTo(".ot-hero__helmet", { x: "-30vw", rotate: -40 }, { x: 0, rotate: 0, duration: 1.6, ease: "kmOut", delay: 0.1 });
-      gsap.to(".ot-hero__helmet", {
-        rotate: 25,
-        yPercent: 30,
-        scale: 0.8,
-        ease: "none",
-        scrollTrigger: { trigger: root.current, start: "top top", end: "bottom top", scrub: true },
-      });
       gsap.fromTo(
         ".ot-hero__info > *",
         { autoAlpha: 0, y: 30 },
@@ -48,9 +40,6 @@ export function OnTrackHero() {
       <ScriptWord className="ot-hero__script" start="top 95%" duration={1.3}>
         On
       </ScriptWord>
-      <div className="ot-hero__helmet">
-        <Image src="/images/helmet-04.jpg" alt="Kai Mercer's 2026 helmet" fill priority sizes="(max-width: 860px) 90vw, 44vw" />
-      </div>
       <div className="ot-hero__info">
         <div className="ot-hero__facts">
           <span>{site.nickname}</span>
@@ -93,6 +82,61 @@ export function OnTrackHero() {
         </div>
       </div>
     </section>
+  );
+}
+
+/**
+ * The race helmet that travels from the On Track hero down onto the statement below it,
+ * turning from a side view to a front view and shrinking as you scroll (pseudo-3D).
+ * Sits in a layer that spans both sections; its inner box is sticky to the viewport.
+ */
+export function HelmetTravel() {
+  const root = useRef<HTMLDivElement>(null);
+  useGSAP(
+    () => {
+      const wrap = root.current?.parentElement;
+      if (!wrap) return;
+      const reduce = prefersReducedMotion();
+      if (!reduce) gsap.from(".ht__intro", { xPercent: -70, rotation: -28, autoAlpha: 0, duration: 1.7, ease: "kmOut", delay: 0.15 });
+      const mm = gsap.matchMedia();
+      mm.add("(min-width: 861px)", () => {
+        const tl = gsap.timeline({
+          defaults: { ease: "none" },
+          scrollTrigger: { trigger: wrap, start: "top top", end: "bottom bottom", scrub: reduce ? true : 0.9 },
+        });
+        tl.fromTo(".ht__body", { x: "-32vw", y: "19vh", scale: 0.86, rotation: -4 }, { x: 0, y: "2vh", scale: 0.4, rotation: 0, duration: 1 }, 0)
+          .fromTo(".ht__side", { autoAlpha: 1, scaleX: 1 }, { autoAlpha: 0, scaleX: 0.5, duration: 0.3, ease: "power1.in" }, 0.32)
+          .fromTo(".ht__front", { autoAlpha: 0, scaleX: 0.5 }, { autoAlpha: 1, scaleX: 1, duration: 0.3, ease: "power1.out" }, 0.56);
+      });
+      mm.add("(max-width: 860px)", () => {
+        gsap.set(".ht__front", { autoAlpha: 0 });
+        gsap.to(".ht__body", {
+          yPercent: 40,
+          rotation: 18,
+          scale: 0.7,
+          ease: "none",
+          scrollTrigger: { trigger: wrap, start: "top top", end: "bottom bottom", scrub: true },
+        });
+      });
+      return () => mm.revert();
+    },
+    { scope: root }
+  );
+  return (
+    <div ref={root} className="ht" aria-hidden="true">
+      <div className="ht__sticky">
+        <div className="ht__body">
+          <div className="ht__intro">
+            <div className="ht__side">
+              <Image src="/images/ontrack-helmet.webp" alt="" fill priority sizes="(max-width: 860px) 100vw, 64vw" quality={85} />
+            </div>
+            <div className="ht__front">
+              <Image src="/images/ontrack-helmet-front.webp" alt="" fill sizes="(max-width: 860px) 60vw, 30vw" quality={85} />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }
 

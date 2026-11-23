@@ -59,10 +59,10 @@ export function OnOffTrack() {
           On track and off track
         </h2>
         <div className="onoff__side onoff__side--l">
-          <Image src="/images/helmet-04.jpg" alt="Kai Mercer's 2026 race helmet" fill sizes="30vw" />
+          <Image src="/images/onoff-helmet.webp" alt="Kai Mercer's 2026 race helmet" fill sizes="42vw" quality={85} />
         </div>
         <div className="onoff__side onoff__side--r">
-          <Image src="/images/offtrack-profile.jpg" alt="Kai Mercer in profile" fill sizes="30vw" />
+          <Image src="/images/onoff-profile.webp" alt="Kai Mercer in profile" fill sizes="36vw" quality={85} />
         </div>
         <div className="onoff__cols">
           <TLink href="/on-track" className="onoff__col">
@@ -101,7 +101,7 @@ export function OnOffTrack() {
 }
 
 /* ---------------------------------------------------------------- Helmets */
-export function Helmets({ heading = true }: { heading?: boolean }) {
+export function Helmets({ heading = true, cta = "track" }: { heading?: boolean; cta?: "track" | "minis" }) {
   const root = useRef<HTMLElement>(null);
   useParallax(root, 160);
   const cols = [0, 1, 2, 3].map((c) => helmets.filter((_, i) => i % 4 === c));
@@ -139,10 +139,21 @@ export function Helmets({ heading = true }: { heading?: boolean }) {
       </div>
       <div className="helmets__more">
         <Laurel helmet={false} className="helmets__laurel" />
-        <p className="serif">See more helmets and highlights from {site.first} on the track</p>
-        <TLink href="/on-track" className="btn btn--green">
-          View on track
-        </TLink>
+        {cta === "minis" ? (
+          <>
+            <p className="serif">Explore the exclusive collection of 1:2 and 1:5 scale replicas</p>
+            <TLink href="/store/collections/helmets" className="btn btn--green">
+              Buy minis
+            </TLink>
+          </>
+        ) : (
+          <>
+            <p className="serif">See more helmets and highlights from {site.first} on the track</p>
+            <TLink href="/on-track" className="btn btn--green">
+              View on track
+            </TLink>
+          </>
+        )}
       </div>
     </section>
   );

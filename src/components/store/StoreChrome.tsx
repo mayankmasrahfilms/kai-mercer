@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
+import { gsap } from "@/lib/gsap";
 import { BagIcon, ChatIcon, ChevronIcon, CloseIcon, Monogram, SearchIcon, SocialGlyph, UserIcon } from "@/components/icons";
 import { TLink } from "@/components/site/TLink";
 import { collections, formatPrice, type Product } from "@/data/store";
@@ -288,13 +289,122 @@ export function ProductCard({ p }: { p: Product }) {
   );
 }
 
+/**
+ * Product slider: arrow buttons glide a page of cards with an eased tween, mouse users can
+ * drag with momentum, touch uses native swipe + snap, and the arrows fade in/out at the ends.
+ */
 export function Carousel({ title, items, viewAll }: { title: string; items: Product[]; viewAll?: string }) {
   const track = useRef<HTMLDivElement>(null);
+  const [edge, setEdge] = useState<{ start: boolean; end: boolean }>({ start: true, end: false });
+  const tween = useRef<gsap.core.Tween | null>(null);
+
+  const glideTo = (left: number, duration = 0.9, ease = "power3.inOut") => {
+    const el = track.current;
+    if (!el) return;
+    tween.current?.kill();
+    const max = el.scrollWidth - el.clientWidth;
+    const proxy = { x: el.scrollLeft };
+    el.style.scrollSnapType = "none";
+    tween.current = gsap.to(proxy, {
+      x: Math.max(0, Math.min(max, left)),
+      duration,
+      ease,
+      onUpdate: () => {
+        el.scrollLeft = proxy.x;
+      },
+      onComplete: () => {
+        el.style.scrollSnapType = "";
+      },
+    });
+  };
+
   const scroll = (dir: 1 | -1) => {
     const el = track.current;
     if (!el) return;
-    el.scrollBy({ left: dir * el.clientWidth * 0.8, behavior: "smooth" });
+    const card = el.firstElementChild as HTMLElement | null;
+    const gap = parseFloat(getComputedStyle(el).columnGap) || 20;
+    const step = card ? card.offsetWidth + gap : el.clientWidth * 0.8;
+    const perPage = Math.max(1, Math.floor((el.clientWidth - 40) / step));
+    const target = Math.round(el.scrollLeft / step) * step + dir * perPage * step;
+    glideTo(target);
   };
+
+  useEffect(() => {
+    const el = track.current;
+    if (!el) return;
+    const update = () => {
+      const max = el.scrollWidth - el.clientWidth;
+      setEdge({ start: el.scrollLeft <= 4, end: el.scrollLeft >= max - 4 });
+    };
+    update();
+    el.addEventListener("scroll", update, { passive: true });
+    window.addEventListener("resize", update);
+
+    // mouse drag with momentum (touch keeps native swiping)
+    let down = false;
+    let moved = 0;
+    let startX = 0;
+    let startLeft = 0;
+    let lastX = 0;
+    let lastT = 0;
+    let vel = 0;
+    const onDown = (e: PointerEvent) => {
+      if (e.pointerType !== "mouse" || e.button !== 0) return;
+      down = true;
+      moved = 0;
+      startX = lastX = e.clientX;
+      startLeft = el.scrollLeft;
+      lastT = performance.now();
+      vel = 0;
+      tween.current?.kill();
+      el.style.scrollSnapType = "none";
+    };
+    const onMove = (e: PointerEvent) => {
+      if (!down) return;
+      const dx = e.clientX - startX;
+      moved = Math.max(moved, Math.abs(dx));
+      if (moved > 4) el.classList.add("is-dragging");
+      el.scrollLeft = startLeft - dx;
+      const now = performance.now();
+      vel = (e.clientX - lastX) / Math.max(1, now - lastT);
+      lastX = e.clientX;
+      lastT = now;
+    };
+    const onUp = () => {
+      if (!down) return;
+      down = false;
+      el.classList.remove("is-dragging");
+      if (moved > 4) {
+        const card = el.firstElementChild as HTMLElement | null;
+        const gap = parseFloat(getComputedStyle(el).columnGap) || 20;
+        const step = card ? card.offsetWidth + gap : 1;
+        const projected = el.scrollLeft - vel * 380;
+        glideTo(Math.round(projected / step) * step, 0.8, "power3.out");
+      } else {
+        el.style.scrollSnapType = "";
+      }
+    };
+    const onClick = (e: MouseEvent) => {
+      if (moved > 4) {
+        e.preventDefault();
+        e.stopPropagation();
+        moved = 0;
+      }
+    };
+    el.addEventListener("pointerdown", onDown);
+    window.addEventListener("pointermove", onMove);
+    window.addEventListener("pointerup", onUp);
+    el.addEventListener("click", onClick, true);
+    return () => {
+      el.removeEventListener("scroll", update);
+      window.removeEventListener("resize", update);
+      el.removeEventListener("pointerdown", onDown);
+      window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("pointerup", onUp);
+      el.removeEventListener("click", onClick, true);
+      tween.current?.kill();
+    };
+  }, []);
   return (
     <section className="carousel" aria-label={title}>
       <div className="carousel__head">
@@ -306,7 +416,13 @@ export function Carousel({ title, items, viewAll }: { title: string; items: Prod
         )}
       </div>
       <div className="carousel__wrap">
-        <button type="button" className="carousel__arrow carousel__arrow--prev" onClick={() => scroll(-1)} aria-label="Previous">
+        <button
+          type="button"
+          className={`carousel__arrow carousel__arrow--prev ${edge.start ? "is-hidden" : ""}`}
+          onClick={() => scroll(-1)}
+          aria-label="Previous"
+          tabIndex={edge.start ? -1 : 0}
+        >
           <ChevronIcon />
         </button>
         <div className="carousel__track" ref={track}>
@@ -314,7 +430,13 @@ export function Carousel({ title, items, viewAll }: { title: string; items: Prod
             <ProductCard key={p.slug} p={p} />
           ))}
         </div>
-        <button type="button" className="carousel__arrow carousel__arrow--next" onClick={() => scroll(1)} aria-label="Next">
+        <button
+          type="button"
+          className={`carousel__arrow carousel__arrow--next ${edge.end ? "is-hidden" : ""}`}
+          onClick={() => scroll(1)}
+          aria-label="Next"
+          tabIndex={edge.end ? -1 : 0}
+        >
           <ChevronIcon />
         </button>
       </div>

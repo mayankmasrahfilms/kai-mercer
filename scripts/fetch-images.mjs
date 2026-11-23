@@ -19,7 +19,7 @@ async function worker() {
       const s = await stat(file);
       if (s.size > 0) { total += s.size; continue; }
     } catch {}
-    const url = `${item.url}?w=${item.w}&q=78&fm=jpg&fit=max`;
+    const url = `${item.url}?w=${item.w}&q=84&fm=jpg&fit=max`;
     const res = await fetch(url);
     if (!res.ok) { console.error(`FAIL ${item.slot} ${res.status}`); continue; }
     const buf = Buffer.from(await res.arrayBuffer());

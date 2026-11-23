@@ -4,7 +4,7 @@ import { Reveal, ScriptWord } from "@/components/anim";
 import { Laurel, Signature } from "@/components/icons";
 import { Collage } from "@/components/home/Collage";
 import { Helmets, Socials } from "@/components/home/Sections";
-import { OnTrackHero, PodiumCount } from "@/components/racing/OnTrackHero";
+import { HelmetTravel, OnTrackHero, PodiumCount } from "@/components/racing/OnTrackHero";
 import { Countdown, Highlights, NextRaceCard, SeasonResults } from "@/components/racing/Racing";
 import { TLink } from "@/components/site/TLink";
 import { JsonLd, breadcrumbLd, pageMetadata } from "@/lib/seo";
@@ -26,7 +26,9 @@ export default function OnTrackPage() {
   return (
     <>
       <JsonLd data={breadcrumbLd([{ name: "Home", path: "/" }, { name: "On Track", path: "/on-track" }])} />
-      <OnTrackHero />
+      <div className="ot-intro">
+        <HelmetTravel />
+        <OnTrackHero />
 
       <section className="ot-statement" data-theme="dark" aria-labelledby="ot-statement-title">
         <div className="ot-statement__sig">
@@ -36,11 +38,9 @@ export default function OnTrackPage() {
         <Reveal as="h2" className="ot-statement__text display" id="ot-statement-title">
           Challenging the limits, <span className="serif">winning big</span>, bringing the heat each and every weekend.
         </Reveal>
-        <div className="ot-statement__helmet" aria-hidden="true">
-          <Image src="/images/helmet-11.jpg" alt="" fill sizes="20vw" />
-        </div>
         <Laurel helmet={false} className="ot-statement__laurel" />
       </section>
+      </div>
 
       <PodiumCount count={career.podiums} />
 
@@ -103,7 +103,7 @@ export default function OnTrackPage() {
         <Highlights />
       </section>
 
-      <Collage items={collageTrack} variant="dark" />
+      <Collage data={collageTrack} variant="dark" />
 
       <section className="ot-titles" data-theme="dark" aria-labelledby="titles-title">
         <div className="ot-titles__img">
@@ -147,7 +147,7 @@ export default function OnTrackPage() {
         <Image src="/images/ontrack-fullbleed.jpg" alt="Kai Mercer pulling on his helmet before a race" fill sizes="100vw" />
       </div>
 
-      <Helmets />
+      <Helmets cta="minis" />
       <Socials />
     </>
   );
