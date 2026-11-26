@@ -159,7 +159,7 @@
   transition: background-color 0.3s, border-color 0.3s;
 }
 .next-card:hover .next-card__body {
-  background: rgba(210, 255, 0, 0.75);
+  background: rgba(220, 0, 0, 0.75);
   border-color: var(--ink);
 }
 .next-card__body .label {

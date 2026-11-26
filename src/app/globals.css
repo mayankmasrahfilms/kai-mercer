@@ -3,9 +3,9 @@
    ========================================================================== */
 
 :root {
-  --lime: #d2ff00;
-  --lime-text: #bfd53a;
-  --lime-deep: #9bb51c;
+  --lime: #dc0000;
+  --lime-text: #c41e1e;
+  --lime-deep: #9e1111;
   --olive: #282c20;
   --olive-2: #33372a;
   --olive-3: #3b3f31;
@@ -226,7 +226,7 @@ sup.ord {
 .btn--green {
   background: var(--green);
   color: var(--cream);
-  border: 1px solid rgba(210, 255, 0, 0.14);
+  border: 1px solid rgba(220, 0, 0, 0.14);
 }
 .btn--green:hover {
   background: var(--lime);

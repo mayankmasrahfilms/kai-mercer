@@ -5,9 +5,9 @@
   --s-bg: #1a2306;
   --s-bg-2: #111112;
   --s-bar: #1f2a07;
-  --s-lime: #d2ff00;
+  --s-lime: #dc0000;
   --s-text: #eeeee4;
-  --s-line: rgba(210, 255, 0, 0.16);
+  --s-line: rgba(220, 0, 0, 0.16);
   background: var(--s-bg);
   color: var(--s-text);
   min-height: 100vh;
